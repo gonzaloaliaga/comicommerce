@@ -119,7 +119,7 @@ export const products = [
   },
   {
     id: 14,
-    img: "/products/allstarsuperman.jfif",
+    img: "/products/allstarsuperman.jpg",
     name: "All Star Superman",
     price: "$56.000",
     categoria: "DC",
@@ -146,7 +146,7 @@ export const products = [
   },
   {
     id: 17,
-    img: "/products/dardevilelhombresinmiedo.jfif",
+    img: "/products/dardevilelhombresinmiedo.webp",
     name: "Dardevil el Hombre sin Miedo",
     price: "$43.000",
     categoria: "MARVEL",
