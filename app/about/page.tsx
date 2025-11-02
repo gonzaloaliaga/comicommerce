@@ -15,7 +15,7 @@ export default function AboutPage() {
         <div
           className="position-absolute top-0 start-0 w-100 h-100"
           style={{
-            backgroundImage: "url('/products/backgroundComic.jpg')",
+            backgroundImage: "url('/assets/backgroundComic.jpg')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             opacity: 0.15,
