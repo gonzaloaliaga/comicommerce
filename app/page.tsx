@@ -19,7 +19,7 @@ export default function Home() {
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
 
     // Print url de la api con mongodb
-    console.log("Backend URL =>", process.env.NEXT_PUBLIC_BACKEND_URL);
+    console.log("Backend URL =>", process.env.NEXT_PUBLIC_API_URL);
 
     // Fetch a la API
     fetch("/api/products")
