@@ -18,6 +18,9 @@ export default function Home() {
     // @ts-expect-error: Bootstrap no tiene tipos, se importa solo para activar JS en cliente
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
 
+    // Print url de la api con mongodb
+    console.log(process.env.NEXT_PUBLIC_API_URL);
+
     // Fetch a la API
     fetch("/api/products")
       .then((res) => res.json())
