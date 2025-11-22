@@ -8,6 +8,9 @@ import Footer from "../components/footer";
 import Image from "next/image";
 import router from "next/router";
 
+// API MONGO
+import { getProductById } from "../api/api";
+
 // Usamos el tipo `Usuario` y la forma de carrito { id, cantidad }
 
 export default function ProductDetailsContent() {
@@ -28,13 +31,17 @@ export default function ProductDetailsContent() {
 
     const id = Number(idParam);
 
-    fetch("/api/products")
-      .then((res) => res.json())
-      .then((data: Product[]) => {
-        const encontrado = data.find((p) => p.id === id);
-        if (!encontrado) setError("Producto no encontrado");
-        else setProducto(encontrado);
-
+    getProductById(id)
+      .then((data: Product | null) => {
+        if (!data) {
+          setError("Producto no encontrado");
+        } else {
+          setProducto(data);
+        }
+        setCargando(false);
+      })
+      .catch(() => {
+        setError("Error al obtener producto");
         setCargando(false);
       });
   }, [idParam]);

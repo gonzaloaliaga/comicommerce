@@ -12,6 +12,8 @@ async function fetchData(endpoint: string) {
 }
 
 export const getProducts = () => fetchData("/api/products");
+export const getProductById = (id: string | number) =>
+  fetchData(`/api/products/${id}`);
 export const getUsers = () => fetchData("/api/users");
 export const getCarritoByUser = (userId: string | number) =>
   fetchData(`/api/carritos/user/${userId}`);
