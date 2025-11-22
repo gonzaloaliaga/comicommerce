@@ -10,8 +10,19 @@ import Footer from "./components/footer";
 
 // Importación de type product para usar API PROPIA
 import { Product } from "../app/components/types";
-// Importación de
 import { getProducts } from "../app/api/api";
+
+// Función para formatear precio CLP
+const formatoPrecio = (valor: number | string) => {
+  const num = typeof valor === "string" ? Number(valor) : valor;
+  if (isNaN(num)) return valor;
+
+  return num.toLocaleString("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    minimumFractionDigits: 0,
+  });
+};
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -20,10 +31,8 @@ export default function Home() {
     // @ts-expect-error: Bootstrap no tiene tipos, se importa solo para activar JS en cliente
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
 
-    // Print url de la api con mongodb
     console.log("Backend URL =>", process.env.NEXT_PUBLIC_API_URL);
 
-    // Obtener productos desde backend
     getProducts()
       .then((data: Product[]) => {
         if (!data) return;
@@ -37,10 +46,8 @@ export default function Home() {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      {/* HEADER */}
       <Header />
 
-      {/* MAIN CONTENT */}
       <main className="flex-grow-1 container mt-4">
         {/* Welcome Card */}
         <div className="card mb-5 border-0 shadow">
@@ -81,7 +88,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Product Grid */}
+        {/* GRID de productos */}
         <div className="row g-4">
           {products.map((product) => (
             <div key={product.id} className="col-6 col-md-4 col-lg-3">
@@ -89,7 +96,7 @@ export default function Home() {
                 className="card h-100 text-center shadow-sm"
                 style={{ height: 500 }}
               >
-                {/* Caja centrada con tamaño fijo 250x250 */}
+                {/* Imagen */}
                 <div
                   style={{
                     width: "100%",
@@ -104,7 +111,7 @@ export default function Home() {
                     style={{
                       width: 250,
                       height: 250,
-                      position: "relative", // obligatorio para Image fill
+                      position: "relative",
                       overflow: "hidden",
                       background: "white",
                       display: "flex",
@@ -121,13 +128,14 @@ export default function Home() {
                         src={product.img}
                         alt={product.nombre}
                         fill
-                        style={{ objectFit: "contain" }} // cambiar a "cover" si quieres recortar
+                        style={{ objectFit: "contain" }}
                         priority
                       />
                     </Link>
                   </div>
                 </div>
 
+                {/* Información */}
                 <div className="card-body d-flex flex-column justify-content-between mt-auto">
                   <div>
                     <Link
@@ -139,7 +147,9 @@ export default function Home() {
                   </div>
 
                   <div>
-                    <p className="text-muted mb-0">{product.precio}</p>
+                    <p className="text-dark mb-0 fw-bold">
+                      {formatoPrecio(product.precio)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -148,7 +158,6 @@ export default function Home() {
         </div>
       </main>
 
-      {/* FOOTER */}
       <Footer />
     </div>
   );

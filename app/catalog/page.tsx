@@ -121,7 +121,7 @@ export default function Catalogo() {
                           {product.nombre}
                         </Link>
 
-                        <p className="mb-2 fw-bold text-success">
+                        <p className="text-dark mb-0 fw-bold">
                           {formatoPrecio(Number(product.precio))}
                         </p>
                       </div>
