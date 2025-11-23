@@ -17,7 +17,9 @@ export const getProductById = (id: string | number) =>
 export const getUsers = () => fetchData("/api/users");
 export const getCarritoByUser = (userId: string | number) =>
   fetchData(`/api/carritos/user/${userId}`);
-export const postUser = async (user: any) => {
+
+import { Usuario } from "../components/types";
+export const postUser = async (user: Usuario) => {
   try {
     const res = await fetch(`${BASE_URL}/api/users`, {
       method: "POST",
