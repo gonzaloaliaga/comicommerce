@@ -6,9 +6,11 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import { comunasPorRegion } from "../components/comunas";
 import { Usuario } from "../components/types";
+import { postUser, getUsers } from "../api/api";
 
 export default function RegisterPage() {
   const router = useRouter();
+
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [correoConfirm, setCorreoConfirm] = useState("");
@@ -22,11 +24,11 @@ export default function RegisterPage() {
 
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
 
+  // Obtener usuarios con API
   useEffect(() => {
-    const datos = localStorage.getItem("usuarios");
-    if (datos) {
-      setUsuarios(JSON.parse(datos));
-    }
+    getUsers().then((res) => {
+      if (res) setUsuarios(res);
+    });
   }, []);
 
   // actualizar comunas al cambiar la región
@@ -39,7 +41,7 @@ export default function RegisterPage() {
     setComuna(""); // resetear comuna al cambiar región
   }, [region]);
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // validaciones
@@ -71,10 +73,14 @@ export default function RegisterPage() {
       carrito: [],
     };
 
-    const nuevosUsuarios = [...usuarios, nuevoUsuario];
-    setUsuarios(nuevosUsuarios);
-    localStorage.setItem("usuarios", JSON.stringify(nuevosUsuarios));
-    localStorage.setItem("usuarioLogueado", JSON.stringify(nuevoUsuario));
+    const res = await postUser(nuevoUsuario);
+
+    if (!res) {
+      return setError("Error al registrar usuario en el servidor.");
+    }
+
+    // Guardar usuario logeado localmente
+    localStorage.setItem("usuarioLogueado", JSON.stringify(res));
 
     alert("Registro exitoso. Gracias por crear tu cuenta.");
     router.push("/");

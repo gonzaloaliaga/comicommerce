@@ -17,3 +17,20 @@ export const getProductById = (id: string | number) =>
 export const getUsers = () => fetchData("/api/users");
 export const getCarritoByUser = (userId: string | number) =>
   fetchData(`/api/carritos/user/${userId}`);
+export const postUser = async (user: any) => {
+  try {
+    const res = await fetch(`${BASE_URL}/api/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(user),
+    });
+
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("POST error:", err);
+    return null;
+  }
+};
