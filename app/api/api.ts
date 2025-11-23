@@ -17,7 +17,7 @@ export const getProductById = (id: string | number) =>
 export const getUsers = () => fetchData("/api/users");
 
 export const getCarritoByUser = (userId: string | number) =>
-  fetchData(`/api/carritos/user/${userId}`);
+  fetchData(`/api/carrito/${userId}`);
 
 export const addToCart = async (
   usuarioId: string,
@@ -56,8 +56,8 @@ export const removeFromCart = async (usuarioId: string, productoId: string) => {
   }
 };
 
-import { Usuario } from "../components/types";
-export const postUser = async (user: Usuario) => {
+import { UsuarioRegister } from "../components/types";
+export const postUser = async (user: UsuarioRegister) => {
   try {
     const res = await fetch(`${BASE_URL}/api/users`, {
       method: "POST",

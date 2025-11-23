@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
-import { Usuario } from "./types";
+import { UsuarioMongo } from "./types";
+import { getCarritoByUser } from "../api/api";
 
 export default function Header() {
-  const [usuarioLogueado, setUsuarioLogueado] = useState<Usuario | null>(null);
+  const [usuarioLogueado, setUsuarioLogueado] = useState<UsuarioMongo | null>(
+    null
+  );
   const [cantidadCarrito, setCantidadCarrito] = useState<number>(0);
 
   const fetchCarrito = async (usuarioId: string) => {
     try {
-      const res = await fetch(
-        `https://mondongonzalo.up.railway.app/api/carrito/${usuarioId}`
-      );
+      const res = await getCarritoByUser(usuarioId);
       const carrito = await res.json();
 
       const total = carrito.items?.reduce(
@@ -36,10 +37,10 @@ export default function Header() {
       return;
     }
 
-    const usuario: Usuario = JSON.parse(userData);
+    const usuario: UsuarioMongo = JSON.parse(userData);
     setUsuarioLogueado(usuario);
 
-    if (usuario._id) fetchCarrito(usuario._id);
+    if (usuario.id) fetchCarrito(usuario.id);
   }, []);
 
   useEffect(() => {

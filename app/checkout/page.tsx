@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Usuario, Product, CarritoItem } from "../components/types";
+import { UsuarioMongo, ProductMongo, CarritoItem } from "../components/types";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import { parsePrice, formatPrice } from "../../lib/price";
@@ -30,14 +30,14 @@ interface FormErrors {
 interface CartDetail {
   productoId: string;
   cantidad: number;
-  product: Product | null;
+  product: ProductMongo | null;
 }
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [usuario, setUsuario] = useState<UsuarioMongo | null>(null);
   const [carritoItems, setCarritoItems] = useState<CarritoItem[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductMongo[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [formData, setFormData] = useState<FormData>({
@@ -64,7 +64,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      let user: Usuario & { _id?: string };
+      let user: UsuarioMongo & { id?: string };
       try {
         user = JSON.parse(userJSON);
         setUsuario(user);
@@ -75,7 +75,7 @@ export default function CheckoutPage() {
         return;
       }
 
-      const userId = user._id || "";
+      const userId = user.id || "";
       if (!userId) {
         alert("Usuario sin identificador. Vuelve a iniciar sesión.");
         router.push("/login");
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
   // Resolver detalles de productos usando solo _id
   const cartDetails: CartDetail[] = carritoItems.map((ci) => {
     const product =
-      products.find((p) => p._id === String(ci.productoId)) || null;
+      products.find((p) => p.id === String(ci.productoId)) || null;
     return { productoId: ci.productoId, cantidad: ci.cantidad, product };
   });
 
@@ -193,7 +193,7 @@ export default function CheckoutPage() {
     }
 
     // Vaciar carrito en backend usando tu endpoint DELETE /api/carrito/{usuarioId}
-    const userId = usuario?._id || "";
+    const userId = usuario?.id || "";
     if (!userId) return router.push("/login");
     if (!userId) {
       alert(
@@ -400,7 +400,7 @@ export default function CheckoutPage() {
               {cartDetails.map((item) =>
                 item.product ? (
                   <div
-                    key={item.product._id}
+                    key={item.product.id}
                     className="d-flex justify-content-between mb-2"
                   >
                     <small>

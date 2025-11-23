@@ -5,30 +5,24 @@ import Header from "../components/header";
 import Footer from "../components/footer";
 import Link from "next/link";
 import Image from "next/image";
-import { Product } from "../components/types";
+import { ProductMongo } from "../components/types";
 import { getProducts } from "../api/api";
 import Price from "../components/precio";
 
 export default function Catalogo() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductMongo[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] =
     useState<string>("Todas");
 
   useEffect(() => {
-    getProducts().then((data: Product[] | null) => {
+    getProducts().then((data: ProductMongo[] | null) => {
       console.log("API data received:", data);
       if (!data) return;
 
-      // FIX asegurar que todos tengan _id
-      const fixed = data.map((p) => ({
-        ...p,
-        _id: p._id ?? p.id,
-      }));
+      setProducts(data);
 
-      setProducts(fixed);
-
-      const cats = Array.from(new Set(fixed.map((p) => p.categoria)));
+      const cats = Array.from(new Set(data.map((p) => p.categoria)));
       setCategorias(cats);
     });
   }, []);
@@ -74,7 +68,7 @@ export default function Catalogo() {
                   console.log("Render product (CATÁLOGO):", product); // LOG DE TESTEO
 
                   return (
-                    <div key={product._id} className="col-6 col-md-4 col-lg-3">
+                    <div key={product.id} className="col-6 col-md-4 col-lg-3">
                       <div
                         className="card h-100 text-center shadow-sm border-0 d-flex flex-column"
                         style={{ height: "500px" }}
@@ -102,7 +96,7 @@ export default function Catalogo() {
                             }}
                           >
                             <Link
-                              href={`/productDetails?id=${product._id}`}
+                              href={`/productDetails?id=${product.id}`}
                               aria-label={product.nombre}
                             >
                               <Image
@@ -118,7 +112,7 @@ export default function Catalogo() {
 
                         <div className="card-body d-flex flex-column justify-content-between mt-auto">
                           <Link
-                            href={`/productDetails?id=${product._id}`}
+                            href={`/productDetails?id=${product.id}`}
                             className="text-decoration-none fw-semibold d-block mb-1 text-dark"
                           >
                             {product.nombre}

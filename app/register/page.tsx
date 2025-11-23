@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import { comunasPorRegion } from "../components/comunas";
-import { Usuario } from "../components/types";
-import { postUser, getUsers } from "../api/api";
+import { UsuarioRegister } from "../components/types";
+import { postUser, getUsers, loginUser } from "../api/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function RegisterPage() {
   const [listaComunas, setListaComunas] = useState<string[]>([]);
   const [error, setError] = useState("");
 
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [usuarios, setUsuarios] = useState<UsuarioRegister[]>([]);
 
   // Obtener usuarios con API
   useEffect(() => {
@@ -63,9 +63,7 @@ export default function RegisterPage() {
     if (!region || !comuna)
       return setError("Debes seleccionar región y comuna.");
 
-    const nuevoUsuario: Usuario = {
-      _id: "",
-      id: "",
+    const nuevoUsuario: UsuarioRegister = {
       nombre,
       correo,
       pass,
@@ -80,13 +78,9 @@ export default function RegisterPage() {
       return setError("Error al registrar usuario en el servidor.");
     }
 
-    // Normalizar ID del usuario recibido desde backend
-    const normalizedUser = {
-      ...res,
-      _id: res._id ?? res.id,
-    };
+    const usuarioLogueado = await loginUser(correo, pass);
 
-    localStorage.setItem("usuarioLogueado", JSON.stringify(normalizedUser));
+    localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioLogueado));
 
     alert("Registro exitoso. Gracias por crear tu cuenta.");
     router.push("/");

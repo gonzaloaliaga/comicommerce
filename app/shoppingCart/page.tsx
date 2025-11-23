@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Usuario, Product, CarritoItem } from "../components/types";
+import { UsuarioMongo, ProductMongo, CarritoItem } from "../components/types";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import Image from "next/image";
@@ -12,13 +12,13 @@ import { useRouter } from "next/navigation";
 interface CartDetail {
   productoId: string;
   cantidad: number;
-  product: Product | null;
+  product: ProductMongo | null;
 }
 
 export default function ShoppingCartPage() {
   const router = useRouter();
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [usuario, setUsuario] = useState<UsuarioMongo | null>(null);
+  const [products, setProducts] = useState<ProductMongo[]>([]);
   const [cartDetails, setCartDetails] = useState<CartDetail[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
@@ -26,7 +26,7 @@ export default function ShoppingCartPage() {
   const loadProducts = useCallback(async () => {
     try {
       const res = await fetch("/api/products");
-      const data: Product[] = await res.json();
+      const data: ProductMongo[] = await res.json();
       setProducts(data);
     } catch {
       setProducts([]);
@@ -46,8 +46,7 @@ export default function ShoppingCartPage() {
         const detail: CartDetail[] = data.items.map((ci: CarritoItem) => ({
           productoId: ci.productoId,
           cantidad: ci.cantidad,
-          product:
-            products.find((p) => p._id === String(ci.productoId)) || null,
+          product: products.find((p) => p.id === String(ci.productoId)) || null,
         }));
 
         setCartDetails(detail);
@@ -64,9 +63,9 @@ export default function ShoppingCartPage() {
     if (!userJSON) return setUsuario(null);
 
     try {
-      const user: Usuario = JSON.parse(userJSON);
+      const user: UsuarioMongo = JSON.parse(userJSON);
       setUsuario(user);
-      if (user._id) loadCarrito(user._id);
+      if (user.id) loadCarrito(user.id);
     } catch {
       console.error("Error leyendo usuarioLocalStorage");
     }
@@ -76,27 +75,27 @@ export default function ShoppingCartPage() {
 
   // Actualiza carrito cuando productos están listos
   useEffect(() => {
-    if (usuario?._id && products.length > 0) {
-      loadCarrito(usuario._id);
+    if (usuario?.id && products.length > 0) {
+      loadCarrito(usuario.id);
     }
-  }, [usuario?._id, products, loadCarrito]);
+  }, [usuario?.id, products, loadCarrito]);
 
   // API: aumentar cantidad
   const increaseQty = async (productoId: string) => {
     if (!usuario) return router.push("/login");
-    await fetch(`/api/carrito/${usuario._id}/add/${productoId}`, {
+    await fetch(`/api/carrito/${usuario.id}/add/${productoId}`, {
       method: "PUT",
     });
-    loadCarrito(usuario._id);
+    loadCarrito(usuario.id);
   };
 
   // API: disminuir cantidad o eliminar
   const decreaseQty = async (productoId: string) => {
     if (!usuario) return router.push("/login");
-    await fetch(`/api/carrito/${usuario._id}/remove/${productoId}`, {
+    await fetch(`/api/carrito/${usuario.id}/remove/${productoId}`, {
       method: "PUT",
     });
-    loadCarrito(usuario._id);
+    loadCarrito(usuario.id);
   };
 
   const computeTotal = () =>

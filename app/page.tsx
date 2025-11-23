@@ -10,11 +10,11 @@ import Footer from "./components/footer";
 import Price from "./components/precio";
 
 // Importación de type product para usar API PROPIA
-import { Product } from "../app/components/types";
+import { ProductMongo } from "../app/components/types";
 import { getProducts } from "../app/api/api";
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductMongo[]>([]);
 
   useEffect(() => {
     // @ts-expect-error: Bootstrap no tiene tipos, se importa solo para activar JS en cliente
@@ -23,17 +23,11 @@ export default function Home() {
     console.log("Backend URL =>", process.env.NEXT_PUBLIC_API_URL);
 
     getProducts()
-      .then((data: Product[]) => {
+      .then((data: ProductMongo[]) => {
         console.log("API data received:", data);
         if (!data) return;
 
-        // FIX asegurar _id en todos los productos
-        const fixed = data.map((p) => ({
-          ...p,
-          _id: p._id ?? p.id, // si _id no existe, usar id
-        }));
-
-        const productosAleatorios = fixed.sort(() => Math.random() - 0.5);
+        const productosAleatorios = data.sort(() => Math.random() - 0.5);
         const primerosOcho = productosAleatorios.slice(0, 8);
         setProducts(primerosOcho);
       })
@@ -90,7 +84,7 @@ export default function Home() {
             console.log("Render product:", product); // LOG DE TESTEO
 
             return (
-              <div key={product._id} className="col-6 col-md-4 col-lg-3">
+              <div key={product.id} className="col-6 col-md-4 col-lg-3">
                 <div
                   className="card h-100 text-center shadow-sm"
                   style={{ height: 500 }}
@@ -120,7 +114,7 @@ export default function Home() {
                       }}
                     >
                       <Link
-                        href={`/productDetails?id=${product._id}`}
+                        href={`/productDetails?id=${product.id}`}
                         aria-label={product.nombre}
                       >
                         <Image
@@ -138,7 +132,7 @@ export default function Home() {
                   <div className="card-body d-flex flex-column justify-content-between mt-auto">
                     <div>
                       <Link
-                        href={`/productDetails?id=${product._id}`}
+                        href={`/productDetails?id=${product.id}`}
                         className="text-decoration-none fw-semibold d-block mb-2 text-dark"
                       >
                         {product.nombre}

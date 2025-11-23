@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Product, Usuario } from "../components/types";
+import { ProductMongo, UsuarioMongo } from "../components/types";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import Image from "next/image";
@@ -17,10 +17,10 @@ export default function ProductDetailsContent() {
   const searchParams = useSearchParams();
   const idParam = searchParams.get("id");
 
-  const [producto, setProducto] = useState<Product | null>(null);
+  const [producto, setProducto] = useState<ProductMongo | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [usuario, setUsuario] = useState<UsuarioMongo | null>(null);
 
   useEffect(() => {
     if (!idParam) {
@@ -30,7 +30,7 @@ export default function ProductDetailsContent() {
     }
 
     getProductById(idParam)
-      .then((data: Product | null) => {
+      .then((data: ProductMongo | null) => {
         if (!data) {
           setError("Producto no encontrado");
         } else {
@@ -58,12 +58,12 @@ export default function ProductDetailsContent() {
 
     if (!producto) return;
 
-    if (!usuario?._id && !usuario?.id) {
+    if (!usuario?.id) {
       alert("Debes iniciar sesión para agregar productos al carrito.");
       return;
     }
 
-    const resultado = await addToCart(usuario._id, producto.id, 1);
+    const resultado = await addToCart(usuario.id, producto.id, 1);
 
     if (resultado) {
       alert("Producto agregado al carrito");

@@ -3,8 +3,7 @@ export interface CarritoItem {
   cantidad: number;
 }
 
-export interface Usuario {
-  _id: string;
+export interface UsuarioMongo {
   id: string;
   nombre: string;
   correo: string;
@@ -14,8 +13,16 @@ export interface Usuario {
   comuna: string;
 }
 
-export interface Product {
-  _id: string;
+export interface UsuarioRegister {
+  nombre: string;
+  correo: string;
+  pass: string;
+  telefono?: string;
+  region: string;
+  comuna: string;
+}
+
+export interface ProductMongo {
   id: string;
   img: string;
   nombre: string;
