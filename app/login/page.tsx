@@ -26,6 +26,11 @@ export default function LoginPage() {
       setError("Correo o contraseña incorrecta.");
       return;
     }
+    // Normalizar ID para que el frontend siempre trabaje con _id
+    const normalizedUser = {
+      ...usuarioLogueado,
+      _id: usuarioLogueado._id ?? usuarioLogueado.id,
+    };
 
     localStorage.setItem("usuarioLogueado", JSON.stringify(usuarioLogueado));
     setError("");
