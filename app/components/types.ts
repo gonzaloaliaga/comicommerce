@@ -5,6 +5,7 @@ export interface CarritoItem {
 
 export interface Usuario {
   _id: string;
+  id: string;
   nombre: string;
   correo: string;
   pass: string;

@@ -65,6 +65,7 @@ export default function RegisterPage() {
 
     const nuevoUsuario: Usuario = {
       _id: "",
+      id: "",
       nombre,
       correo,
       pass,
@@ -79,8 +80,13 @@ export default function RegisterPage() {
       return setError("Error al registrar usuario en el servidor.");
     }
 
-    // Guardar usuario logeado localmente
-    localStorage.setItem("usuarioLogueado", JSON.stringify(res));
+    // Normalizar ID del usuario recibido desde backend
+    const normalizedUser = {
+      ...res,
+      _id: res._id ?? res.id,
+    };
+
+    localStorage.setItem("usuarioLogueado", JSON.stringify(normalizedUser));
 
     alert("Registro exitoso. Gracias por crear tu cuenta.");
     router.push("/");

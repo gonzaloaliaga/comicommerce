@@ -13,8 +13,6 @@ import Price from "../components/precio";
 import { getProductById } from "../api/api";
 import { addToCart } from "../api/api";
 
-// Usamos el tipo `Usuario` y la forma de carrito { id, cantidad }
-
 export default function ProductDetailsContent() {
   const searchParams = useSearchParams();
   const idParam = searchParams.get("id");
@@ -60,7 +58,7 @@ export default function ProductDetailsContent() {
 
     if (!producto) return;
 
-    if (!usuario?._id) {
+    if (!usuario?._id && !usuario?.id) {
       alert("Debes iniciar sesión para agregar productos al carrito.");
       return;
     }
