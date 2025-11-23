@@ -63,7 +63,7 @@ export default function ProductDetailsContent() {
       return;
     }
 
-    const resultado = await addToCart(usuario._id, producto._id, 1);
+    const resultado = await addToCart(usuario._id, producto.id, 1);
 
     if (resultado) {
       alert("Producto agregado al carrito");
