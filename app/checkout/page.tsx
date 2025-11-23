@@ -27,11 +27,19 @@ interface FormErrors {
   cvv?: string;
 }
 
+interface CartDetail {
+  productoId: string;
+  cantidad: number;
+  product: Product | null;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
+  const [carritoItems, setCarritoItems] = useState<CarritoItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loading, setLoading] = useState(true);
+
   const [formData, setFormData] = useState<FormData>({
     nombre: "",
     direccion: "",
@@ -43,50 +51,83 @@ export default function CheckoutPage() {
     cardName: "",
     cvv: "",
   });
+
   const [errors, setErrors] = useState<FormErrors>({});
 
-  // Cargar usuario y productos
+  // Cargar usuario, carrito y productos
   useEffect(() => {
-    const userJSON = localStorage.getItem("usuarioLogueado");
-    if (!userJSON) {
-      alert("Debes iniciar sesión para acceder al checkout");
-      router.push("/login");
-      return;
-    }
+    const init = async () => {
+      const userJSON = localStorage.getItem("usuarioLogueado");
+      if (!userJSON) {
+        alert("Debes iniciar sesión para acceder al checkout");
+        router.push("/login");
+        return;
+      }
 
-    const user: Usuario = JSON.parse(userJSON);
-    setUsuario(user);
+      let user: Usuario & { _id?: string; id?: string };
+      try {
+        user = JSON.parse(userJSON);
+        setUsuario(user);
+      } catch {
+        alert("Error leyendo sesión. Vuelve a iniciar sesión.");
+        localStorage.removeItem("usuarioLogueado");
+        router.push("/login");
+        return;
+      }
 
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((data: Product[]) => setProducts(data))
-      .catch(() => setProducts([]))
-      .finally(() => setLoadingProducts(false));
+      const userId = usuario?._id || "";
+      if (!userId) return router.push("/login");
+      if (!userId) {
+        alert("Usuario sin identificador. Vuelve a iniciar sesión.");
+        router.push("/login");
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const [carritoRes, productsRes] = await Promise.all([
+          fetch(`/api/carrito/${userId}`),
+          fetch("/api/products"),
+        ]);
+
+        const carritoJson = carritoRes.ok
+          ? await carritoRes.json()
+          : { items: [] };
+        const productsJson = productsRes.ok ? await productsRes.json() : [];
+
+        setCarritoItems(carritoJson.items ?? []);
+        setProducts(productsJson ?? []);
+      } catch (err) {
+        console.error("Error al cargar datos del checkout:", err);
+        setCarritoItems([]);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
   }, [router]);
 
-  // Resolver productos del carrito
-  const getCartDetails = () => {
-    if (!usuario || products.length === 0) return [];
-    return usuario.carrito.map((item: CarritoItem) => {
-      const product = products.find((p) => p.id === item.id);
-      return { ...item, product };
-    });
-  };
+  // Resolver detalles de productos usando solo _id
+  const cartDetails: CartDetail[] = carritoItems.map((ci) => {
+    const product =
+      products.find((p) => p._id === String(ci.productoId)) || null;
+    return { productoId: ci.productoId, cantidad: ci.cantidad, product };
+  });
 
-  const cartDetails = getCartDetails();
-
-  // Cálculos
-  const computeSubtotal = () => {
-    return cartDetails.reduce((acc, it) => {
-      const price = it.product ? parsePrice(it.product.precio) : 0;
-      return acc + price * it.cantidad;
-    }, 0);
-  };
+  // ----------------- CÁLCULOS -----------------
+  const computeSubtotal = () =>
+    cartDetails.reduce(
+      (acc, it) =>
+        acc + (it.product ? parsePrice(it.product.precio) * it.cantidad : 0),
+      0
+    );
 
   const computeIVA = () => Math.round(computeSubtotal() * 0.19);
   const computeTotal = () => computeSubtotal() + computeIVA();
 
-  // Cambios de input
+  // ----------------- FORM HELPERS -----------------
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -102,20 +143,24 @@ export default function CheckoutPage() {
     setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
-  // Confirmar pedido
-  const handleSubmit = (e: React.FormEvent) => {
+  // ----------------- CONFIRMAR PAGO -----------------
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!usuario || cartDetails.length === 0) return;
+    if (!usuario) return;
+
+    if (cartDetails.length === 0) {
+      alert("Tu carrito está vacío.");
+      return;
+    }
 
     const newErrors: FormErrors = {};
-
     if (!/^\d{9}$/.test(formData.telefono))
       newErrors.telefono = "Ingrese un teléfono válido de 9 dígitos.";
 
     if (formData.metodoPago === "tarjeta") {
       if (!/^\d{16}$/.test(formData.cardNumber))
         newErrors.cardNumber = "Ingrese 16 dígitos de la tarjeta.";
-      if (!/^(0[1-9]|1[0-2])\/?([0-9]{2}|[0-9]{4})$/.test(formData.expiry))
+      if (!/^(0[1-9]|1[0-2])\/?(\d{2}|\d{4})$/.test(formData.expiry))
         newErrors.expiry = "Formato expiración MM/YY o MM/YYYY.";
       if (!formData.cardName.trim())
         newErrors.cardName = "Ingrese el nombre del titular.";
@@ -129,44 +174,64 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Crear orden (localStorage, similar a tu flujo actual)
     const orden = {
       id: Date.now(),
       user: usuario.correo,
-      items: usuario.carrito,
+      items: carritoItems, // items tal como vienen desde backend: { productoId, cantidad }
       total: computeTotal(),
       detallesEnvio: formData,
       createdAt: new Date().toISOString(),
     };
 
-    const ordenesJSON = localStorage.getItem("ordenes");
-    const ordenes = ordenesJSON ? JSON.parse(ordenesJSON) : [];
-    ordenes.push(orden);
-    localStorage.setItem("ordenes", JSON.stringify(ordenes));
+    try {
+      const ordenesJSON = localStorage.getItem("ordenes");
+      const ordenes = ordenesJSON ? JSON.parse(ordenesJSON) : [];
+      ordenes.push(orden);
+      localStorage.setItem("ordenes", JSON.stringify(ordenes));
+    } catch (err) {
+      console.error("Error guardando orden en localStorage", err);
+    }
 
-    // Vaciar carrito del usuario
-    const nuevoUsuario: Usuario = { ...usuario, carrito: [] };
-    setUsuario(nuevoUsuario);
-    localStorage.setItem("usuarioLogueado", JSON.stringify(nuevoUsuario));
+    // Vaciar carrito en backend usando tu endpoint DELETE /api/carrito/{usuarioId}
+    const userId = usuario?._id || "";
+    if (!userId) return router.push("/login");
+    if (!userId) {
+      alert(
+        "Error de sesión: usuario sin identificador. Vuelve a iniciar sesión."
+      );
+      router.push("/login");
+      return;
+    }
 
-    const usuariosJSON = localStorage.getItem("usuarios");
-    let usuarios: Usuario[] = usuariosJSON ? JSON.parse(usuariosJSON) : [];
-    usuarios = usuarios.map((u) =>
-      u.correo === nuevoUsuario.correo ? nuevoUsuario : u
-    );
-    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+    try {
+      const res = await fetch(`/api/carrito/${userId}`, { method: "DELETE" });
+      if (!res.ok) {
+        console.error("Error al vaciar carrito en backend:", await res.text());
+        alert("Hubo un error al procesar el pedido. Intenta nuevamente.");
+        return;
+      }
 
-    window.dispatchEvent(new Event("carritoUpdated"));
+      // Notificar cambios (Header u otras páginas)
+      window.dispatchEvent(new Event("carritoUpdated"));
 
-    alert("¡Gracias por tu compra! Tu pedido ha sido procesado.");
-    router.push("/");
+      alert("¡Gracias por tu compra! Tu pedido ha sido procesado.");
+      router.push("/");
+    } catch (err) {
+      console.error(
+        "Error al comunicarse con el servidor para vaciar carrito:",
+        err
+      );
+      alert("Error al procesar el pedido. Intenta nuevamente.");
+    }
   };
 
-  if (loadingProducts) {
+  if (loading) {
     return (
       <div className="d-flex flex-column min-vh-100">
         <Header />
         <main className="flex-grow-1 container my-4 text-center">
-          <p>Cargando productos...</p>
+          <p>Cargando checkout...</p>
         </main>
         <Footer />
       </div>
@@ -336,7 +401,7 @@ export default function CheckoutPage() {
               {cartDetails.map((item) =>
                 item.product ? (
                   <div
-                    key={item.id}
+                    key={item.product._id}
                     className="d-flex justify-content-between mb-2"
                   >
                     <small>

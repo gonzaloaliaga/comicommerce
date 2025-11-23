@@ -1,10 +1,10 @@
 export interface CarritoItem {
-  id: number;
+  productoId: string;
   cantidad: number;
 }
 
 export interface Usuario {
-  _id?: string;
+  _id: string;
   nombre: string;
   correo: string;
   pass: string;
@@ -14,7 +14,7 @@ export interface Usuario {
 }
 
 export interface Product {
-  id: string;
+  _id: string;
   img: string;
   nombre: string;
   precio: string;

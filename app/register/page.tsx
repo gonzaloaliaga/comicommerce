@@ -64,6 +64,7 @@ export default function RegisterPage() {
       return setError("Debes seleccionar región y comuna.");
 
     const nuevoUsuario: Usuario = {
+      _id: "",
       nombre,
       correo,
       pass,

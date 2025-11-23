@@ -39,6 +39,23 @@ export const addToCart = async (
   }
 };
 
+// Decrementar 1 o eliminar si llega a 0  -> TU endpoint PUT /{usuarioId}/remove/{productoId}
+export const removeFromCart = async (usuarioId: string, productoId: string) => {
+  try {
+    const res = await fetch(
+      `${BASE_URL}/api/carrito/${usuarioId}/remove/${productoId}`,
+      {
+        method: "PUT",
+      }
+    );
+    if (!res.ok) throw new Error(`Error ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("removeFromCart error:", err);
+    return null;
+  }
+};
+
 import { Usuario } from "../components/types";
 export const postUser = async (user: Usuario) => {
   try {

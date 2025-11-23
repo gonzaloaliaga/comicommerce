@@ -10,7 +10,7 @@ import { parsePrice, formatPrice } from "../../lib/price";
 import { useRouter } from "next/navigation";
 
 interface CartDetail {
-  id: number;
+  productoId: string;
   cantidad: number;
   product: Product | null;
 }
@@ -19,103 +19,82 @@ export default function ShoppingCartPage() {
   const router = useRouter();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [cartDetails, setCartDetails] = useState<CartDetail[]>([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
-  // Cargar todos los productos desde la API
-  useEffect(() => {
-    fetch("/api/products")
-      .then((r) => r.json())
-      .then((data: Product[]) => setProducts(data))
-      .catch(() => setProducts([]))
-      .finally(() => setLoadingProducts(false));
-  }, []);
-
-  // Cargar usuario logueado desde localStorage
-  useEffect(() => {
-    const loadUser = () => {
-      const userJSON = localStorage.getItem("usuarioLogueado");
-      if (userJSON) {
-        try {
-          const user: Usuario = JSON.parse(userJSON);
-          setUsuario(user);
-        } catch {
-          console.error("Error al parsear usuarioLogueado");
-          setUsuario(null);
-        }
-      } else {
-        setUsuario(null);
-      }
-    };
-
-    loadUser();
-
-    const onCarritoUpdated = () => loadUser();
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "usuarioLogueado" || e.key === null) loadUser();
-    };
-
-    window.addEventListener("carritoUpdated", onCarritoUpdated);
-    window.addEventListener("storage", onStorage);
-
-    return () => {
-      window.removeEventListener("carritoUpdated", onCarritoUpdated);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
-
-  // Combinar los datos del carrito con los productos
-  const getCartDetails = (): CartDetail[] => {
-    if (!usuario || !products.length) return [];
-    return usuario.carrito.map((ci: CarritoItem) => {
-      const prod = products.find((p) => p.id === ci.id) || null;
-      return { id: ci.id, cantidad: ci.cantidad, product: prod };
-    });
+  // Cargar productos
+  const loadProducts = async () => {
+    try {
+      const res = await fetch("/api/products");
+      const data: Product[] = await res.json();
+      setProducts(data);
+    } catch {
+      setProducts([]);
+    } finally {
+      setLoadingProducts(false);
+    }
   };
 
-  const cartDetails = getCartDetails();
+  // Cargar carrito real desde backend
+  const loadCarrito = async (usuarioId: string) => {
+    try {
+      const res = await fetch(`/api/carrito/${usuarioId}`);
+      const data = await res.json(); // Carrito con: items: [{productoId, cantidad}]
+      if (!data.items) return;
 
-  // Actualizar usuario y sincronizar en localStorage
-  const updateUsuarioAndStorage = (nuevoUsuario: Usuario) => {
-    setUsuario(nuevoUsuario);
-    localStorage.setItem("usuarioLogueado", JSON.stringify(nuevoUsuario));
+      const detail: CartDetail[] = data.items.map((ci: CarritoItem) => ({
+        productoId: ci.productoId,
+        cantidad: ci.cantidad,
+        product: products.find((p) => p._id === String(ci.productoId)) || null,
+      }));
 
-    const usuariosJSON = localStorage.getItem("usuarios");
-    let usuarios: Usuario[] = usuariosJSON ? JSON.parse(usuariosJSON) : [];
-
-    usuarios = usuarios.map((u) =>
-      u.correo === nuevoUsuario.correo ? nuevoUsuario : u
-    );
-
-    localStorage.setItem("usuarios", JSON.stringify(usuarios));
-    window.dispatchEvent(new Event("carritoUpdated"));
+      setCartDetails(detail);
+    } catch (err) {
+      console.error("Error cargando carrito", err);
+    }
   };
 
-  // Cambiar cantidad de un producto
-  const changeQty = (id: number, delta: number) => {
-    if (!usuario) {
-      alert("Debes iniciar sesión para modificar el carrito");
-      router.push("/login");
-      return;
+  // Cargar usuario logueado
+  useEffect(() => {
+    const userJSON = localStorage.getItem("usuarioLogueado");
+    if (!userJSON) return setUsuario(null);
+
+    try {
+      const user: Usuario = JSON.parse(userJSON);
+      setUsuario(user);
+      if (user._id) loadCarrito(user._id);
+    } catch {
+      console.error("Error leyendo usuarioLocalStorage");
     }
 
-    const carrito = [...usuario.carrito];
-    const idx = carrito.findIndex((it) => it.id === id);
-    if (idx === -1) return;
+    loadProducts();
+  }, [loadCarrito, loadProducts]);
 
-    carrito[idx].cantidad += delta;
-    if (carrito[idx].cantidad <= 0) carrito.splice(idx, 1);
+  // Actualizar carrito cuando cambian productos
+  useEffect(() => {
+    if (usuario?._id && products.length > 0) {
+      loadCarrito(usuario._id);
+    }
+  }, [usuario?._id, products, loadCarrito]);
 
-    updateUsuarioAndStorage({ ...usuario, carrito });
+  // API: aumentar cantidad
+  const increaseQty = async (productoId: string) => {
+    if (!usuario) return router.push("/login");
+    await fetch(`/api/carrito/${usuario._id}/add/${productoId}`, {
+      method: "PUT",
+    });
+    loadCarrito(usuario._id);
   };
 
-  // Eliminar producto del carrito
-  const removeItem = (id: number) => {
-    if (!usuario) return;
-    const carrito = usuario.carrito.filter((it) => it.id !== id);
-    updateUsuarioAndStorage({ ...usuario, carrito });
+  // API: disminuir cantidad o eliminar
+  const decreaseQty = async (productoId: string) => {
+    if (!usuario) return router.push("/login");
+    await fetch(`/api/carrito/${usuario._id}/remove/${productoId}`, {
+      method: "PUT",
+    });
+    loadCarrito(usuario._id);
   };
 
-  // Calcular total
   const computeTotal = (): number => {
     return cartDetails.reduce((acc, it) => {
       const price = it.product ? parsePrice(it.product.precio) : 0;
@@ -123,18 +102,12 @@ export default function ShoppingCartPage() {
     }, 0);
   };
 
-  // Ir al checkout
   const handleCheckout = () => {
-    if (!usuario) {
-      alert("Debes iniciar sesión para pagar");
-      router.push("/login");
-      return;
-    }
+    if (!usuario) return router.push("/login");
     if (!cartDetails.length) {
-      alert("El carrito está vacío");
+      alert("Carrito vacío");
       return;
     }
-
     router.push("/checkout");
   };
 
@@ -159,10 +132,9 @@ export default function ShoppingCartPage() {
               <div className="list-group">
                 {cartDetails.map((item) => (
                   <div
-                    key={item.id}
+                    key={item.productoId}
                     className="list-group-item d-flex gap-3 align-items-center"
                   >
-                    {/* Imagen del producto */}
                     <div
                       style={{ width: 120, height: 120 }}
                       className="d-flex align-items-center justify-content-center"
@@ -183,12 +155,9 @@ export default function ShoppingCartPage() {
                       )}
                     </div>
 
-                    {/* Información */}
                     <div className="flex-grow-1">
                       <h5 className="mb-1">
-                        {item.product
-                          ? item.product.nombre
-                          : "Producto no disponible"}
+                        {item.product?.nombre ?? "Producto no disponible"}
                       </h5>
                       <p className="mb-1 text-muted">
                         {item.product?.categoria ?? ""}
@@ -198,44 +167,35 @@ export default function ShoppingCartPage() {
                           ? formatPrice(parsePrice(item.product.precio))
                           : ""}
                       </p>
+
                       <div className="d-flex align-items-center gap-2 mt-2">
                         <button
                           className="btn btn-outline-secondary btn-sm"
-                          onClick={() => changeQty(item.id, -1)}
+                          onClick={() => decreaseQty(item.productoId)}
                         >
                           -
                         </button>
                         <span className="px-2">{item.cantidad}</span>
                         <button
                           className="btn btn-outline-secondary btn-sm"
-                          onClick={() => changeQty(item.id, 1)}
+                          onClick={() => increaseQty(item.productoId)}
                         >
                           +
-                        </button>
-                        <button
-                          className="btn btn-link text-danger ms-3"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          Eliminar
                         </button>
                       </div>
                     </div>
 
-                    {/* Precio total por producto */}
-                    <div style={{ width: 140 }} className="text-end">
-                      <div className="fw-bold">
-                        {formatPrice(
-                          (item.product ? parsePrice(item.product.precio) : 0) *
-                            item.cantidad
-                        )}
-                      </div>
+                    <div style={{ width: 140 }} className="text-end fw-bold">
+                      {formatPrice(
+                        (item.product ? parsePrice(item.product.precio) : 0) *
+                          item.cantidad
+                      )}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Resumen */}
             <div className="col-12 col-lg-4">
               <div className="card p-3 shadow-sm">
                 <h5>Resumen</h5>

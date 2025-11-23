@@ -80,7 +80,7 @@ export default function Home() {
         {/* GRID de productos */}
         <div className="row g-4">
           {products.map((product) => (
-            <div key={product.id} className="col-6 col-md-4 col-lg-3">
+            <div key={product._id} className="col-6 col-md-4 col-lg-3">
               <div
                 className="card h-100 text-center shadow-sm"
                 style={{ height: 500 }}
@@ -110,7 +110,7 @@ export default function Home() {
                     }}
                   >
                     <Link
-                      href={`/productDetails?id=${product.id}`}
+                      href={`/productDetails?id=${product._id}`}
                       aria-label={product.nombre}
                     >
                       <Image
@@ -128,7 +128,7 @@ export default function Home() {
                 <div className="card-body d-flex flex-column justify-content-between mt-auto">
                   <div>
                     <Link
-                      href={`/productDetails?id=${product.id}`}
+                      href={`/productDetails?id=${product._id}`}
                       className="text-decoration-none fw-semibold d-block mb-2 text-dark"
                     >
                       {product.nombre}
