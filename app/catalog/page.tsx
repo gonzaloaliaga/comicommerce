@@ -17,7 +17,6 @@ export default function Catalogo() {
 
   useEffect(() => {
     getProducts().then((data: ProductMongo[] | null) => {
-      console.log("API data received:", data);
       if (!data) return;
 
       setProducts(data);
@@ -65,8 +64,6 @@ export default function Catalogo() {
               {productosFiltrados
                 .filter((p) => p.categoria === categoria)
                 .map((product) => {
-                  console.log("Render product (CATÁLOGO):", product); // LOG DE TESTEO
-
                   return (
                     <div key={product.id} className="col-6 col-md-4 col-lg-3">
                       <div

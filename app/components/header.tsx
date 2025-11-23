@@ -16,10 +16,14 @@ export default function Header() {
       const res = await getCarritoByUser(usuarioId);
       const carrito = await res.json();
 
+      console.log(carrito); // LOG DE TESTEO
+
       const total = carrito.items?.reduce(
         (acc: number, item: { cantidad: number }) => acc + item.cantidad,
         0
       );
+
+      console.log(total); // LOG DE TESTEO
 
       setCantidadCarrito(total || 0);
     } catch (err) {

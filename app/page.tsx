@@ -24,7 +24,6 @@ export default function Home() {
 
     getProducts()
       .then((data: ProductMongo[]) => {
-        console.log("API data received:", data);
         if (!data) return;
 
         const productosAleatorios = data.sort(() => Math.random() - 0.5);
@@ -81,8 +80,6 @@ export default function Home() {
         {/* GRID de productos */}
         <div className="row g-4">
           {products.map((product) => {
-            console.log("Render product:", product); // LOG DE TESTEO
-
             return (
               <div key={product.id} className="col-6 col-md-4 col-lg-3">
                 <div
