@@ -21,11 +21,12 @@ export default function Home() {
     import("bootstrap/dist/js/bootstrap.bundle.min.js");
 
     console.log("Backend URL =>", process.env.NEXT_PUBLIC_API_URL);
-    // LOG DE TESTEO ********************************************
-    console.log("Productos cargados:", getProducts());
 
     getProducts()
       .then((data: Product[]) => {
+        // LOG DE TESTEO *********************************
+
+        console.log("API data received:", data);
         if (!data) return;
 
         const productosAleatorios = data.sort(() => Math.random() - 0.5);
@@ -81,71 +82,75 @@ export default function Home() {
 
         {/* GRID de productos */}
         <div className="row g-4">
-          {products.map((product) => (
-            <div key={product._id} className="col-6 col-md-4 col-lg-3">
-              <div
-                className="card h-100 text-center shadow-sm"
-                style={{ height: 500 }}
-              >
-                {/* Imagen */}
+          {products.map((product) => {
+            console.log("Render product:", product); // LOG DE TESTEO
+
+            return (
+              <div key={product._id} className="col-6 col-md-4 col-lg-3">
                 <div
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    paddingTop: "1rem",
-                    paddingBottom: "0.5rem",
-                  }}
+                  className="card h-100 text-center shadow-sm"
+                  style={{ height: 500 }}
                 >
+                  {/* Imagen */}
                   <div
                     style={{
-                      width: 250,
-                      height: 250,
-                      position: "relative",
-                      overflow: "hidden",
-                      background: "white",
+                      width: "100%",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      boxSizing: "border-box",
+                      paddingTop: "1rem",
+                      paddingBottom: "0.5rem",
                     }}
                   >
-                    <Link
-                      href={`/productDetails?id=${product._id}`}
-                      aria-label={product.nombre}
+                    <div
+                      style={{
+                        width: 250,
+                        height: 250,
+                        position: "relative",
+                        overflow: "hidden",
+                        background: "white",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxSizing: "border-box",
+                      }}
                     >
-                      <Image
-                        src={product.img}
-                        alt={product.nombre}
-                        fill
-                        style={{ objectFit: "contain" }}
-                        priority
-                      />
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Información */}
-                <div className="card-body d-flex flex-column justify-content-between mt-auto">
-                  <div>
-                    <Link
-                      href={`/productDetails?id=${product._id}`}
-                      className="text-decoration-none fw-semibold d-block mb-2 text-dark"
-                    >
-                      {product.nombre}
-                    </Link>
+                      <Link
+                        href={`/productDetails?id=${product._id}`}
+                        aria-label={product.nombre}
+                      >
+                        <Image
+                          src={product.img}
+                          alt={product.nombre}
+                          fill
+                          style={{ objectFit: "contain" }}
+                          priority
+                        />
+                      </Link>
+                    </div>
                   </div>
 
-                  <div>
-                    <p className="fw-bold">
-                      <Price value={product.precio} />
-                    </p>
+                  {/* Información */}
+                  <div className="card-body d-flex flex-column justify-content-between mt-auto">
+                    <div>
+                      <Link
+                        href={`/productDetails?id=${product._id}`}
+                        className="text-decoration-none fw-semibold d-block mb-2 text-dark"
+                      >
+                        {product.nombre}
+                      </Link>
+                    </div>
+
+                    <div>
+                      <p className="fw-bold">
+                        <Price value={product.precio} />
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </main>
 

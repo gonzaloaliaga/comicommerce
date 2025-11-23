@@ -15,11 +15,11 @@ export default function Catalogo() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] =
     useState<string>("Todas");
 
-  // LOG DE TESTEO ********************************************
-  console.log("Productos cargados:", getProducts());
-
   useEffect(() => {
     getProducts().then((data: Product[] | null) => {
+      // LOG DE TESTEO ********************************
+
+      console.log("API data received:", data);
       if (!data) return;
 
       setProducts(data);
@@ -66,64 +66,68 @@ export default function Catalogo() {
             <div className="row g-4">
               {productosFiltrados
                 .filter((p) => p.categoria === categoria)
-                .map((product) => (
-                  <div key={product._id} className="col-6 col-md-4 col-lg-3">
-                    <div
-                      className="card h-100 text-center shadow-sm border-0 d-flex flex-column"
-                      style={{ height: "500px" }}
-                    >
+                .map((product) => {
+                  console.log("Render product (CATÁLOGO):", product); // LOG DE TESTEO
+
+                  return (
+                    <div key={product._id} className="col-6 col-md-4 col-lg-3">
                       <div
-                        style={{
-                          width: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          paddingTop: "1rem",
-                          paddingBottom: "0.5rem",
-                        }}
+                        className="card h-100 text-center shadow-sm border-0 d-flex flex-column"
+                        style={{ height: "500px" }}
                       >
                         <div
                           style={{
-                            width: 250,
-                            height: 250,
-                            position: "relative",
-                            overflow: "hidden",
-                            background: "white",
+                            width: "100%",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            paddingTop: "1rem",
+                            paddingBottom: "0.5rem",
                           }}
                         >
+                          <div
+                            style={{
+                              width: 250,
+                              height: 250,
+                              position: "relative",
+                              overflow: "hidden",
+                              background: "white",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Link
+                              href={`/productDetails?id=${product._id}`}
+                              aria-label={product.nombre}
+                            >
+                              <Image
+                                src={product.img}
+                                alt={product.nombre}
+                                fill
+                                style={{ objectFit: "contain" }}
+                                priority
+                              />
+                            </Link>
+                          </div>
+                        </div>
+
+                        <div className="card-body d-flex flex-column justify-content-between mt-auto">
                           <Link
                             href={`/productDetails?id=${product._id}`}
-                            aria-label={product.nombre}
+                            className="text-decoration-none fw-semibold d-block mb-1 text-dark"
                           >
-                            <Image
-                              src={product.img}
-                              alt={product.nombre}
-                              fill
-                              style={{ objectFit: "contain" }}
-                              priority
-                            />
+                            {product.nombre}
                           </Link>
+
+                          <p className="fw-bold">
+                            <Price value={product.precio} />
+                          </p>
                         </div>
                       </div>
-
-                      <div className="card-body d-flex flex-column justify-content-between mt-auto">
-                        <Link
-                          href={`/productDetails?id=${product._id}`}
-                          className="text-decoration-none fw-semibold d-block mb-1 text-dark"
-                        >
-                          {product.nombre}
-                        </Link>
-
-                        <p className="fw-bold">
-                          <Price value={product.precio} />
-                        </p>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </section>
         ))}
