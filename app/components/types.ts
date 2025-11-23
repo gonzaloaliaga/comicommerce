@@ -6,7 +6,7 @@ export interface CarritoItem {
 export interface Usuario {
   nombre: string;
   correo: string;
-  password: string;
+  pass: string;
   telefono?: string;
   region: string;
   comuna: string;

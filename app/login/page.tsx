@@ -11,16 +11,16 @@ import { loginUser } from "../api/api";
 export default function LoginPage() {
   const router = useRouter();
   const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
+  const [pass, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
-    if (!correo || !password) {
+    if (!correo || !pass) {
       setError("Por favor completa todos los campos.");
       return;
     }
 
-    const usuarioLogueado = await loginUser(correo, password);
+    const usuarioLogueado = await loginUser(correo, pass);
 
     if (!usuarioLogueado) {
       setError("Correo o contraseña incorrecta.");
@@ -56,9 +56,9 @@ export default function LoginPage() {
             className="form-control mb-3"
           />
           <input
-            type="password"
+            type="pass"
             placeholder="Contraseña"
-            value={password}
+            value={pass}
             onChange={(e) => setPassword(e.target.value)}
             className="form-control mb-3"
           />
