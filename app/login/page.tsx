@@ -11,7 +11,7 @@ import { loginUser } from "../api/api";
 export default function LoginPage() {
   const router = useRouter();
   const [correo, setCorreo] = useState("");
-  const [pass, setPassword] = useState("");
+  const [pass, setPass] = useState("");
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
@@ -59,7 +59,7 @@ export default function LoginPage() {
             type="pass"
             placeholder="Contraseña"
             value={pass}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => setPass(e.target.value)}
             className="form-control mb-3"
           />
 

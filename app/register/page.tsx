@@ -14,8 +14,8 @@ export default function RegisterPage() {
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [correoConfirm, setCorreoConfirm] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [pass, setPass] = useState("");
+  const [passConfirm, setpassConfirm] = useState("");
   const [telefono, setTelefono] = useState("");
   const [region, setRegion] = useState("");
   const [comuna, setComuna] = useState("");
@@ -56,9 +56,9 @@ export default function RegisterPage() {
     const dominiosPermitidos = ["@gmail.com", "@duoc.cl", "@profesor.duoc.cl"];
     if (!dominiosPermitidos.some((d) => correo.endsWith(d)))
       return setError("Dominio de correo inválido.");
-    if (password.length < 5 || password.length > 10)
+    if (pass.length < 5 || pass.length > 10)
       return setError("La contraseña debe tener entre 5 y 10 caracteres.");
-    if (password !== passwordConfirm)
+    if (pass !== passConfirm)
       return setError("Las contraseñas deben coincidir.");
     if (!region || !comuna)
       return setError("Debes seleccionar región y comuna.");
@@ -66,7 +66,7 @@ export default function RegisterPage() {
     const nuevoUsuario: Usuario = {
       nombre,
       correo,
-      password,
+      pass,
       telefono,
       region,
       comuna,
@@ -132,9 +132,9 @@ export default function RegisterPage() {
               <label>Contraseña</label>
               <input
                 className="form-control"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="pass"
+                value={pass}
+                onChange={(e) => setPass(e.target.value)}
                 required
               />
             </div>
@@ -142,9 +142,9 @@ export default function RegisterPage() {
               <label>Confirmar contraseña</label>
               <input
                 className="form-control"
-                type="password"
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
+                type="pass"
+                value={passConfirm}
+                onChange={(e) => setpassConfirm(e.target.value)}
                 required
               />
             </div>
