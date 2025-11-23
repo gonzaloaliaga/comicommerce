@@ -17,14 +17,18 @@ export default function Catalogo() {
 
   useEffect(() => {
     getProducts().then((data: Product[] | null) => {
-      // LOG DE TESTEO ********************************
-
       console.log("API data received:", data);
       if (!data) return;
 
-      setProducts(data);
+      // FIX asegurar que todos tengan _id
+      const fixed = data.map((p) => ({
+        ...p,
+        _id: p._id ?? p.id,
+      }));
 
-      const cats = Array.from(new Set(data.map((p) => p.categoria)));
+      setProducts(fixed);
+
+      const cats = Array.from(new Set(fixed.map((p) => p.categoria)));
       setCategorias(cats);
     });
   }, []);

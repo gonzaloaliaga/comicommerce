@@ -24,12 +24,16 @@ export default function Home() {
 
     getProducts()
       .then((data: Product[]) => {
-        // LOG DE TESTEO *********************************
-
         console.log("API data received:", data);
         if (!data) return;
 
-        const productosAleatorios = data.sort(() => Math.random() - 0.5);
+        // FIX asegurar _id en todos los productos
+        const fixed = data.map((p) => ({
+          ...p,
+          _id: p._id ?? p.id, // si _id no existe, usar id
+        }));
+
+        const productosAleatorios = fixed.sort(() => Math.random() - 0.5);
         const primerosOcho = productosAleatorios.slice(0, 8);
         setProducts(primerosOcho);
       })

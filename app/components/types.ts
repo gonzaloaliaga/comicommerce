@@ -15,6 +15,7 @@ export interface Usuario {
 
 export interface Product {
   _id: string;
+  id: string;
   img: string;
   nombre: string;
   precio: string;
