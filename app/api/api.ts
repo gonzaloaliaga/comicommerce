@@ -13,12 +13,20 @@ async function fetchData(endpoint: string) {
 }
 
 // **************** METODOS PRODUCTOS *******************
-export const getProducts = () => fetchData("/api/products");
+export const getProducts = async () => {
+  const data = await fetchData("/api/products");
+  return data?._embedded?.productoList ?? [];
+};
+
 export const getProductById = (id: string | number) =>
   fetchData(`/api/products/${id}`);
 
 // **************** METODOS USUARIOS *******************
-export const getUsers = () => fetchData("/api/users");
+export const getUsers = async () => {
+  const data = await fetchData("/api/users");
+  return data?._embedded?.usuarioList ?? [];
+};
+
 export const postUser = async (user: UsuarioRegister) => {
   try {
     const res = await fetch(`${BASE_URL}/api/users`, {
