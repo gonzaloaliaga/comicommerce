@@ -46,10 +46,10 @@ export const postUser = async (user: UsuarioRegister) => {
 };
 
 // **************** LOGIN *******************
-export const loginUser = async (correo: string, password: string) => {
+export const loginUser = async (correo: string, pass: string) => {
   try {
     const res = await fetch(
-      `${BASE_URL}/api/users/login?correo=${correo}&password=${password}`
+      `${BASE_URL}/api/users/login?correo=${correo}&pass=${pass}`
     );
 
     if (!res.ok) throw new Error(`Error ${res.status}`);
